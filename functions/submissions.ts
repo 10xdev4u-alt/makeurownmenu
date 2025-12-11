@@ -1,40 +1,38 @@
 // functions/submissions.ts
 
-import { connectToDatabase } from '../src/lib/mongodb';
 import type { PagesFunction } from '@cloudflare/workers-types';
+import { Env } from '../src/lib/d1';
 
-export const onRequestGet: PagesFunction = async (context) => {
-  console.log("onRequestGet: Function start");
+export const onRequestGet: PagesFunction<Env> = async (context) => {
   try {
-    const { request } = context;
+    const { request, env } = context;
     const url = new URL(request.url);
     const email = url.searchParams.get('email');
-    console.log(`onRequestGet: Email parameter: ${email}`);
 
-    console.log("onRequestGet: Connecting to database...");
-    const { db } = await connectToDatabase();
-    console.log("onRequestGet: Database connection successful.");
+    let query = 'SELECT * FROM menu_submissions';
+    const params: (string | number)[] = [];
 
-    const collection = db.collection('menu_submissions');
-
-    let query = {};
     if (email) {
-      query = { email: email };
+      query += ' WHERE email = ?';
+      params.push(email);
     }
-    console.log("onRequestGet: Executing query:", query);
+    query += ' ORDER BY created_at DESC';
 
-    const submissions = await collection
-      .find(query)
-      .sort({ created_at: -1 })
-      .toArray();
-    console.log(`onRequestGet: Found ${submissions.length} submissions.`);
+    const { results } = await env.makeurownmenu_db.prepare(query).bind(...params).all();
+
+    // D1 returns created_at as TEXT, convert to Date for consistency if needed by frontend
+    const submissions = results.map((submission: any) => ({
+      ...submission,
+      created_at: new Date(submission.created_at),
+      menu_feedback: JSON.parse(submission.menu_feedback) // Parse JSON string back to object
+    }));
 
     return new Response(JSON.stringify(submissions), {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
-    console.error("onRequestGet: Caught error:", err);
+    console.error("Error in onRequestGet:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
