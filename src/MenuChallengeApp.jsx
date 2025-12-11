@@ -108,7 +108,7 @@ export default function MenuChallengeApp() {
 
     setSubmitting(true);
     try {
-      const response = await fetch('/api/submit', {
+      const response = await fetch('/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

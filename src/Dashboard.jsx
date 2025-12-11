@@ -19,7 +19,7 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchSubmissions() {
       try {
-        const response = await fetch('/api/submissions');
+        const response = await fetch('/submissions');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
