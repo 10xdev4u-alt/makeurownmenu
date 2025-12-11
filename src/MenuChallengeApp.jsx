@@ -108,15 +108,20 @@ export default function MenuChallengeApp() {
 
     setSubmitting(true);
     try {
-      const response = await fetch('/api/submit');
-      const data = await response.json();
-      alert(JSON.stringify(data)); // Temporary alert for debugging
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user, menuFeedback: formData }),
+      });
 
       if (!response.ok) {
-        throw new Error(data.error || 'Something went wrong');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Something went wrong');
       }
 
-      // setSuccess(true); // Temporarily disabled for debugging
+      setSuccess(true);
     } catch (err) {
       setError(err.message);
     } finally {
