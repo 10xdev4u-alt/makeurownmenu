@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import WordCloud from '@isoterik/react-word-cloud';
+import { WordCloud } from '@isoterik/react-word-cloud';
 
 const MEALS = ["Breakfast", "Lunch", "Snacks", "Dinner"];
 
