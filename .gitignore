@@ -1,0 +1,57 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+.report/
+
+# Node.js
+# Attention: If you're using the keep-folder-structure option for shadcn/ui,
+# you might need to adjust your .gitignore to prevent components from being ignored.
+# For example, if your components are in `src/components/ui`, you might need to add
+# `!src/components/ui/` to your .gitignore.
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.env.local
+.env.*.local
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.bak
+*.user
+*.code-workspace
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Vite-specific
+.vite/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# npm package manager cache
+.npm/
+
+# yarn package manager cache
+.yarn/
+
+# pnpm package manager cache
+.pnpm/
+
+# shadcn-ui
+components.json
