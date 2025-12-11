@@ -7,7 +7,9 @@ if (!uri) {
   throw new Error('MongoDB URI is required. Please set VITE_MONGODB_URI in your .env file.');
 }
 
-const client = new MongoClient(uri);
+const client = new MongoClient(uri, {
+  serverSelectionTimeoutMS: 5000, // 5 second timeout
+});
 let cachedDb: Db | null = null;
 
 export async function connectToDatabase() {
