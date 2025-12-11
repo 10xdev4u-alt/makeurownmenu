@@ -1,0 +1,6 @@
+# wrangler.toml
+name = "makeurownmenu"
+pages_build_output_dir = "./dist"
+
+[[compatibility_flags]]
+name = "nodejs_compat"
