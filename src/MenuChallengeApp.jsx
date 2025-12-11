@@ -64,6 +64,8 @@ export default function MenuChallengeApp() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  const [submitting, setSubmitting] = useState(false);
+
   // Helper to handle text changes
   const handleMenuChange = (day, meal, type, value) => {
     setFormData(prev => ({
@@ -81,7 +83,7 @@ export default function MenuChallengeApp() {
   const validateForm = () => {
     // 1. User Details Check
     if (!user.name || !user.email || !user.room) {
-      setError("Macha! Fill in your personal details (Name, Email, Room No) first.");
+      setError("Boi! Fill in your personal details (Name, Email, Room No) first.");
       return false;
     }
 
@@ -98,13 +100,32 @@ export default function MenuChallengeApp() {
     return true;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError("");
-    if (validateForm()) {
-      // API CALL TO SUPABASE GOES HERE
-      console.log("Submitting Payload:", { user, menuFeedback: formData });
+    if (!validateForm()) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user, menuFeedback: formData }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Something went wrong');
+      }
+
       setSuccess(true);
-      // alert("Mass! Menu Submitted Successfully.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -129,7 +150,7 @@ export default function MenuChallengeApp() {
             Design Your Own Menu 🍛
           </h1>
           <p className="text-slate-500">
-            SVCE Boys Hostel • Redefine what we eat.
+            SVCE Boys Hostel Block 3 • Redefine what we eat.
           </p>
         </div>
 
@@ -142,15 +163,15 @@ export default function MenuChallengeApp() {
           <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input id="name" placeholder="E.g. Karthi K" value={user.name} onChange={e => setUser({...user, name: e.target.value})} />
+              <Input id="name" placeholder="E.g. Balaji" value={user.name} onChange={e => setUser({...user, name: e.target.value})} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">College Email ID</Label>
-              <Input id="email" type="email" placeholder="e.g. karthi2025@svce.ac.in" value={user.email} onChange={e => setUser({...user, email: e.target.value})} />
+              <Input id="email" type="email" placeholder="e.g. 2023xx0000@svce.ac.in" value={user.email} onChange={e => setUser({...user, email: e.target.value})} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="room">Room Number</Label>
-              <Input id="room" placeholder="E.g. A-304" value={user.room} onChange={e => setUser({...user, room: e.target.value})} />
+              <Input id="room" placeholder="E.g. 3XYZ" value={user.room} onChange={e => setUser({...user, room: e.target.value})} />
             </div>
           </CardContent>
         </Card>
@@ -253,13 +274,13 @@ export default function MenuChallengeApp() {
                     Next Day
                   </Button>
                 ) : (
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     className="bg-indigo-600 hover:bg-indigo-700 text-white w-full md:w-auto px-8"
                     onClick={handleSubmit}
+                    disabled={submitting}
                   >
-                    <Save className="w-4 h-4 mr-2" />
-                    Submit Final Menu
+                    {submitting ? 'Submitting...' : <><Save className="w-4 h-4 mr-2" /> Submit Final Menu</>}
                   </Button>
                 )}
               </div>
