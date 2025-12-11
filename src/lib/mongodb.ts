@@ -1,6 +1,6 @@
 import { MongoClient, Db } from 'mongodb';
 
-const uri = "YOUR_MONGODB_URI_HERE"; // IMPORTANT: Replace this with your actual MongoDB URI
+const uri = "mongodb+srv://makeurmnu:<$makeurownmenu_>@makeurownmenu.lwpthid.mongodb.net/?appName=makeurownmenu"; // IMPORTANT: Replace this with your actual MongoDB URI
 const dbName = 'MakeUrOwnMenu';
 
 if (!uri) {
