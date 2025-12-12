@@ -13,7 +13,8 @@ export default function Dashboard() {
   const [stats, setStats] = useState({
     totalSubmissions: 0,
     mealSuggestions: {},
-    opinionWords: []
+    opinionWords: [],
+    mostActiveUser: null, // New state for most active user
   });
 
   useEffect(() => {
@@ -40,12 +41,18 @@ export default function Dashboard() {
     const totalSubmissions = data.length;
     const mealSuggestions = {};
     const opinionWords = [];
+    const userSubmissionCounts = {}; // To track submissions per user
 
     MEALS.forEach(meal => {
       mealSuggestions[meal] = {};
     });
 
     data.forEach(submission => {
+      // Count submissions per user
+      if (submission.email) {
+        userSubmissionCounts[submission.email] = (userSubmissionCounts[submission.email] || 0) + 1;
+      }
+
       for (const day in submission.menu_feedback) {
         for (const meal in submission.menu_feedback[day]) {
           const suggestion = submission.menu_feedback[day][meal]?.suggestion;
@@ -63,6 +70,18 @@ export default function Dashboard() {
         }
       }
     });
+
+    // Determine most active user
+    let mostActiveUser = null;
+    let maxSubmissions = 0;
+    for (const email in userSubmissionCounts) {
+      if (userSubmissionCounts[email] > maxSubmissions) {
+        maxSubmissions = userSubmissionCounts[email];
+        // Find the name associated with this email from the first submission
+        const userSubmission = data.find(s => s.email === email);
+        mostActiveUser = { email, count: maxSubmissions, name: userSubmission?.name || 'N/A' };
+      }
+    }
 
     // Sort suggestions by count for each meal
     for (const meal in mealSuggestions) {
@@ -83,7 +102,7 @@ export default function Dashboard() {
       .sort((a, b) => b.value - a.value)
       .slice(0, 50); // Take top 50 words
 
-    setStats({ totalSubmissions, mealSuggestions, opinionWords: wordCloudData });
+    setStats({ totalSubmissions, mealSuggestions, opinionWords: wordCloudData, mostActiveUser });
   };
 
   if (loading) {
@@ -95,37 +114,42 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-100 p-4 md:p-8 font-sans text-slate-800">
+      <div className="max-w-7xl mx-auto space-y-8">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-indigo-800 drop-shadow-sm">
             Menu Submissions Dashboard 📊
           </h1>
-          <p className="text-slate-500">
+          <p className="text-indigo-600 text-lg">
             Overview of all menu suggestions from SVCE Boys Hostel.
           </p>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-600">Total Submissions</CardTitle>
+              <MessageSquare className="h-4 w-4 text-indigo-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalSubmissions}</div>
+              <div className="text-3xl font-bold text-indigo-700">{stats.totalSubmissions}</div>
             </CardContent>
           </Card>
           {MEALS.map(meal => (
-            <Card key={meal}>
+            <Card key={meal} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{meal} Suggestions</CardTitle>
+                <CardTitle className="text-sm font-medium text-slate-600">{meal} Suggestions</CardTitle>
+                <Utensils className="h-4 w-4 text-green-500" />
               </CardHeader>
               <CardContent>
                 {stats.mealSuggestions[meal] && stats.mealSuggestions[meal].length > 0 ? (
-                  <ul className="text-sm">
+                  <ul className="text-sm space-y-1">
                     {stats.mealSuggestions[meal].slice(0, 3).map((item, index) => (
-                      <li key={index}>{item.suggestion} ({item.count})</li>
+                      <li key={index} className="flex justify-between items-center">
+                        <span className="text-slate-700">{item.suggestion}</span>
+                        <span className="text-xs font-semibold text-indigo-500">({item.count})</span>
+                      </li>
                     ))}
                   </ul>
                 ) : (
@@ -134,35 +158,58 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           ))}
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Most Active User</CardTitle>
+              <User className="h-4 w-4 text-purple-500" />
+            </CardHeader>
+            <CardContent>
+              {stats.mostActiveUser ? (
+                <div>
+                  <div className="text-lg font-bold text-purple-700">{stats.mostActiveUser.name}</div>
+                  <p className="text-xs text-slate-500">{stats.mostActiveUser.email}</p>
+                  <p className="text-sm text-slate-600 mt-1">Submissions: <span className="font-semibold">{stats.mostActiveUser.count}</span></p>
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500">No submissions yet</p>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Visualizations */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader>
-              <CardTitle>Top Breakfast Suggestions</CardTitle>
+              <CardTitle className="text-lg text-slate-700">Top Breakfast Suggestions</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={stats.mealSuggestions.Breakfast?.slice(0, 5)}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="suggestion" />
-                  <YAxis />
-                  <Tooltip />
+                <BarChart data={stats.mealSuggestions.Breakfast?.slice(0, 5)} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="suggestion" angle={-30} textAnchor="end" height={60} interval={0} style={{ fontSize: '12px' }} />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
                   <Legend />
-                  <Bar dataKey="count" fill="#8884d8" />
+                  <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader>
-              <CardTitle>Common Opinion Words</CardTitle>
+              <CardTitle className="text-lg text-slate-700">Common Opinion Words</CardTitle>
             </CardHeader>
             <CardContent>
               <div style={{ height: 300, width: '100%' }}>
                 {stats.opinionWords.length > 0 ? (
-                  <WordCloud data={stats.opinionWords} />
+                  <WordCloud 
+                    data={stats.opinionWords} 
+                    fontSizeMapper={word => Math.log2(word.value) * 5 + 16} // Custom font size mapping
+                    rotate={0} // No rotation for better readability
+                    padding={2}
+                    fill="#4f46e5" // Tailwind indigo-600
+                  />
                 ) : (
                   <p className="text-center text-gray-500">Not enough opinion data for a word cloud.</p>
                 )}
@@ -171,9 +218,9 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader>
-            <CardTitle>All Submissions</CardTitle>
+            <CardTitle className="text-lg text-slate-700">All Submissions</CardTitle>
           </CardHeader>
           <CardContent>
             {submissions.length === 0 ? (
@@ -183,24 +230,24 @@ export default function Dashboard() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Room</TableHead>
-                      <TableHead>Submitted On</TableHead>
-                      <TableHead>Details</TableHead>
+                      <TableHead className="text-slate-600">Name</TableHead>
+                      <TableHead className="text-slate-600">Email</TableHead>
+                      <TableHead className="text-slate-600">Room</TableHead>
+                      <TableHead className="text-slate-600">Submitted On</TableHead>
+                      <TableHead className="text-slate-600">Details</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {submissions.map((submission) => (
                       <TableRow key={submission.id}>
-                        <TableCell className="font-medium">{submission.name}</TableCell>
-                        <TableCell>{submission.email}</TableCell>
-                        <TableCell>{submission.room}</TableCell>
-                        <TableCell>{new Date(submission.created_at).toLocaleString()}</TableCell>
+                        <TableCell className="font-medium text-slate-800">{submission.name}</TableCell>
+                        <TableCell className="text-slate-700">{submission.email}</TableCell>
+                        <TableCell className="text-slate-700">{submission.room}</TableCell>
+                        <TableCell className="text-slate-700">{new Date(submission.created_at).toLocaleString()}</TableCell>
                         <TableCell>
-                          <details className="cursor-pointer">
+                          <details className="cursor-pointer text-indigo-600 hover:text-indigo-800">
                             <summary>View Feedback</summary>
-                            <pre className="mt-2 p-2 bg-gray-100 rounded-md text-xs overflow-x-auto">
+                            <pre className="mt-2 p-3 bg-indigo-50 border border-indigo-200 rounded-md text-xs overflow-x-auto text-slate-700">
                               {JSON.stringify(submission.menu_feedback, null, 2)}
                             </pre>
                           </details>
