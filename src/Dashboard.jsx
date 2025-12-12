@@ -4,6 +4,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { WordCloud } from '@isoterik/react-word-cloud';
 import { MessageSquare, User, Utensils } from 'lucide-react';
+import { Button } from './components/ui/button'; // Import Button for DialogTrigger
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from './components/ui/dialog'; // Import Dialog components
 
 const MEALS = ["Breakfast", "Lunch", "Snacks", "Dinner"];
 
@@ -15,8 +24,10 @@ export default function Dashboard() {
     totalSubmissions: 0,
     mealSuggestions: {},
     opinionWords: [],
-    mostActiveUser: null, // New state for most active user
+    mostActiveUser: null,
   });
+  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
 
   useEffect(() => {
     async function fetchSubmissions() {
@@ -26,10 +37,10 @@ export default function Dashboard() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        console.log("Dashboard: Data received from API:", data); // Log received data
+        console.log("Dashboard: Data received from API:", data);
         setSubmissions(data);
-        console.log("Dashboard: Submissions state after setSubmissions:", data); // Log state after update
-        processSubmissions(data); // Process data for stats
+        console.log("Dashboard: Submissions state after setSubmissions:", data);
+        processSubmissions(data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -44,14 +55,13 @@ export default function Dashboard() {
     const totalSubmissions = data.length;
     const mealSuggestions = {};
     const opinionWords = [];
-    const userSubmissionCounts = {}; // To track submissions per user
+    const userSubmissionCounts = {};
 
     MEALS.forEach(meal => {
       mealSuggestions[meal] = {};
     });
 
     data.forEach(submission => {
-      // Count submissions per user
       if (submission.email) {
         userSubmissionCounts[submission.email] = (userSubmissionCounts[submission.email] || 0) + 1;
       }
@@ -65,7 +75,7 @@ export default function Dashboard() {
           const opinion = submission.menu_feedback[day][meal]?.opinion;
           if (opinion) {
             opinion.split(/\s+/).forEach(word => {
-              if (word.length > 3) { // Filter out short words
+              if (word.length > 3) {
                 opinionWords.push(word.toLowerCase());
               }
             });
@@ -74,19 +84,16 @@ export default function Dashboard() {
       }
     });
 
-    // Determine most active user
     let mostActiveUser = null;
     let maxSubmissions = 0;
     for (const email in userSubmissionCounts) {
       if (userSubmissionCounts[email] > maxSubmissions) {
         maxSubmissions = userSubmissionCounts[email];
-        // Find the name associated with this email from the first submission
         const userSubmission = data.find(s => s.email === email);
         mostActiveUser = { email, count: maxSubmissions, name: userSubmission?.name || 'N/A' };
       }
     }
 
-    // Sort suggestions by count for each meal
     for (const meal in mealSuggestions) {
       const sortedSuggestions = Object.entries(mealSuggestions[meal])
         .sort(([, countA], [, countB]) => countB - countA)
@@ -94,7 +101,6 @@ export default function Dashboard() {
       mealSuggestions[meal] = sortedSuggestions;
     }
 
-    // Process opinion words for word cloud
     const wordFrequencies = opinionWords.reduce((acc, word) => {
       acc[word] = (acc[word] || 0) + 1;
       return acc;
@@ -103,7 +109,7 @@ export default function Dashboard() {
     const wordCloudData = Object.entries(wordFrequencies)
       .map(([text, value]) => ({ text, value }))
       .sort((a, b) => b.value - a.value)
-      .slice(0, 50); // Take top 50 words
+      .slice(0, 50);
 
     setStats({ totalSubmissions, mealSuggestions, opinionWords: wordCloudData, mostActiveUser });
   };
@@ -248,29 +254,39 @@ export default function Dashboard() {
                         <TableCell className="text-slate-700">{submission.room}</TableCell>
                         <TableCell className="text-slate-700">{new Date(submission.created_at).toLocaleString()}</TableCell>
                         <TableCell>
-                          <details className="cursor-pointer text-indigo-600 hover:text-indigo-800">
-                            <summary>View Feedback</summary>
-                            <div className="mt-2 p-3 bg-indigo-50 border border-indigo-200 rounded-md text-xs overflow-x-auto text-slate-700">
-                              {Object.entries(submission.menu_feedback).map(([day, meals]) => (
-                                <div key={day} className="mb-2">
-                                  <h4 className="font-bold text-sm text-indigo-700">{day}</h4>
-                                  <ul className="list-disc list-inside ml-2">
-                                    {Object.entries(meals).map(([meal, feedback]) => (
-                                      <li key={meal} className="mb-1">
-                                        <span className="font-semibold">{meal}:</span>
-                                        {feedback.suggestion && (
-                                          <p className="ml-4">Suggestion: {feedback.suggestion}</p>
-                                        )}
-                                        {feedback.opinion && (
-                                          <p className="ml-4">Opinion: {feedback.opinion}</p>
-                                        )}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              ))}
-                            </div>
-                          </details>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm" className="h-8 text-indigo-600 hover:text-indigo-800">View Feedback</Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[800px]">
+                              <DialogHeader>
+                                <DialogTitle>Feedback for {submission.name}</DialogTitle>
+                                <DialogDescription>
+                                  Detailed menu suggestions and opinions submitted on {new Date(submission.created_at).toLocaleString()}.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+                                {Object.entries(submission.menu_feedback).map(([day, meals]) => (
+                                  <div key={day} className="mb-2 border-b pb-2 last:border-b-0">
+                                    <h4 className="font-bold text-md text-indigo-700 mb-1">{day}</h4>
+                                    <ul className="list-disc list-inside ml-4 space-y-1">
+                                      {Object.entries(meals).map(([meal, feedback]) => (
+                                        <li key={meal}>
+                                          <span className="font-semibold">{meal}:</span>
+                                          {feedback.suggestion && (
+                                            <p className="ml-4 text-slate-700">Suggestion: {feedback.suggestion}</p>
+                                          )}
+                                          {feedback.opinion && (
+                                            <p className="ml-4 text-slate-700">Opinion: {feedback.opinion}</p>
+                                          )}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                ))}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         </TableCell>
                       </TableRow>
                     ))}
