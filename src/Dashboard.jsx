@@ -250,9 +250,26 @@ export default function Dashboard() {
                         <TableCell>
                           <details className="cursor-pointer text-indigo-600 hover:text-indigo-800">
                             <summary>View Feedback</summary>
-                            <pre className="mt-2 p-3 bg-indigo-50 border border-indigo-200 rounded-md text-xs overflow-x-auto text-slate-700">
-                              {JSON.stringify(submission.menu_feedback, null, 2)}
-                            </pre>
+                            <div className="mt-2 p-3 bg-indigo-50 border border-indigo-200 rounded-md text-xs overflow-x-auto text-slate-700">
+                              {Object.entries(submission.menu_feedback).map(([day, meals]) => (
+                                <div key={day} className="mb-2">
+                                  <h4 className="font-bold text-sm text-indigo-700">{day}</h4>
+                                  <ul className="list-disc list-inside ml-2">
+                                    {Object.entries(meals).map(([meal, feedback]) => (
+                                      <li key={meal} className="mb-1">
+                                        <span className="font-semibold">{meal}:</span>
+                                        {feedback.suggestion && (
+                                          <p className="ml-4">Suggestion: {feedback.suggestion}</p>
+                                        )}
+                                        {feedback.opinion && (
+                                          <p className="ml-4">Opinion: {feedback.opinion}</p>
+                                        )}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ))}
+                            </div>
                           </details>
                         </TableCell>
                       </TableRow>
