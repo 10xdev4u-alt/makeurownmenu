@@ -187,7 +187,7 @@ export default function Dashboard() {
         </div>
 
         {/* Visualizations */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader>
               <CardTitle className="text-lg text-slate-700">Top Breakfast Suggestions</CardTitle>
@@ -207,6 +207,57 @@ export default function Dashboard() {
           </Card>
           <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader>
+              <CardTitle className="text-lg text-slate-700">Top Lunch Suggestions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={stats.mealSuggestions.Lunch?.slice(0, 5)} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="suggestion" angle={-30} textAnchor="end" height={60} interval={0} style={{ fontSize: '12px' }} />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+                  <Legend />
+                  <Bar dataKey="count" fill="#22c55e" radius={[4, 4, 0, 0]} /> {/* Green color */}
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardHeader>
+              <CardTitle className="text-lg text-slate-700">Top Snacks Suggestions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={stats.mealSuggestions.Snacks?.slice(0, 5)} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="suggestion" angle={-30} textAnchor="end" height={60} interval={0} style={{ fontSize: '12px' }} />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+                  <Legend />
+                  <Bar dataKey="count" fill="#f97316" radius={[4, 4, 0, 0]} /> {/* Orange color */}
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardHeader>
+              <CardTitle className="text-lg text-slate-700">Top Dinner Suggestions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={stats.mealSuggestions.Dinner?.slice(0, 5)} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="suggestion" angle={-30} textAnchor="end" height={60} interval={0} style={{ fontSize: '12px' }} />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+                  <Legend />
+                  <Bar dataKey="count" fill="#ef4444" radius={[4, 4, 0, 0]} /> {/* Red color */}
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardHeader>
               <CardTitle className="text-lg text-slate-700">Common Opinion Words</CardTitle>
             </CardHeader>
             <CardContent>
@@ -214,10 +265,10 @@ export default function Dashboard() {
                 {stats.opinionWords.length > 0 ? (
                   <WordCloud 
                     data={stats.opinionWords} 
-                    fontSizeMapper={word => Math.log2(word.value) * 5 + 16} // Custom font size mapping
-                    rotate={0} // No rotation for better readability
+                    fontSizeMapper={word => Math.log2(word.value) * 5 + 16}
+                    rotate={0}
                     padding={2}
-                    fill="#4f46e5" // Tailwind indigo-600
+                    fill="#4f46e5"
                   />
                 ) : (
                   <p className="text-center text-gray-500">Not enough opinion data for a word cloud.</p>
