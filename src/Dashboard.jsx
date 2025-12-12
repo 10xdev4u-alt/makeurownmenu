@@ -25,7 +25,9 @@ export default function Dashboard() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        console.log("Dashboard: Data received from API:", data); // Log received data
         setSubmissions(data);
+        console.log("Dashboard: Submissions state after setSubmissions:", data); // Log state after update
         processSubmissions(data); // Process data for stats
       } catch (err) {
         setError(err.message);
